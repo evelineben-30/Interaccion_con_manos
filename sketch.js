@@ -8,30 +8,42 @@ function preload() {
 }
 
 function setup() {
-  // 1. Aumentamos el canvas para que haya espacio para el marco
-  createCanvas(windowWidth, windowHeight); 
+  // Creamos el lienzo al tamaño total de la ventana
+  createCanvas(windowWidth, windowHeight);
+  
   video = createCapture(VIDEO);
   video.size(640, 480);
+  
+  // Forzamos que el elemento HTML original no estorbe en la esquina
+  video.style('position', 'absolute');
+  video.style('top', '-1000px'); 
   video.hide();
+
   handPose.detectStart(video, gotHands);
 }
 
 function draw() {
+  // 1. Dibujamos el fondo con el degradado decorativo
   drawBackground(); 
 
-  // 2. Calcular coordenadas para centrar el video
-  let camX = (width - video.width) / 2;
-  let camY = (height - video.height) / 2;
+  // 2. Calculamos la posición central exacta para la cámara y el marco
+  let camX = (width - 640) / 2;
+  let camY = (height - 480) / 2;
 
-  // 3. Dibujar un "Marco" decorativo (Sombra y borde blanco)
+  // 3. DISEÑO DEL MARCO (Para que se vea "bonito")
+  // Sombra proyectada
+  fill(0, 0, 0, 40);
+  rect(camX - 10, camY + 10, 640 + 20, 480 + 20, 25); 
+  
+  // Marco Blanco tipo Polaroid
   fill(255);
   noStroke();
-  rect(camX - 15, camY - 15, video.width + 30, video.height + 30, 20); // Marco blanco redondeado
-  
-  // Dibujar la cámara
-  image(video, camX, camY);
+  rect(camX - 20, camY - 20, 640 + 40, 480 + 40, 25); 
 
-  // --- Lógica de Partículas ---
+  // 4. DIBUJAR LA CÁMARA CENTRADA
+  image(video, camX, camY, 640, 480);
+
+  // 5. LÓGICA DE PARTÍCULAS
   for (let i = particles.length - 1; i >= 0; i--) {
     particles[i].update();
     particles[i].display();
@@ -44,48 +56,45 @@ function draw() {
     let tip = hand.index_finger_tip;
     if (!tip) continue;
 
-    // IMPORTANTE: Mapear las coordenadas del video al canvas centrado
+    // Ajustamos la posición de las partículas para que coincidan con la cámara centrada
     let cx = camX + tip.x;
     let cy = camY + tip.y;
 
-    let count = 2; // Bajé un poco el count para no saturar el rendimiento
-    let sizeMapped = 25;
     let shapeType = (hand.handedness === "Right") ? "heart" : "star";
-
-    for (let i = 0; i < count; i++) {
-      particles.push(new Particle(cx, cy, shapeType, sizeMapped));
-    }
+    
+    // Agregamos partículas
+    particles.push(new Particle(cx, cy, shapeType, 25));
   }
 }
 
-// Fondo con degradado suave (Estilo estético)
+// Fondo degradado estético
 function drawBackground() {
   for (let y = 0; y < height; y++) {
     let inter = map(y, 0, height, 0, 1);
-    // Colores pastel: Rosa suave a Azul cielo
-    let c = lerpColor(color(255, 209, 220), color(200, 220, 255), inter);
+    let c = lerpColor(color(255, 200, 220), color(180, 210, 255), inter);
     stroke(c);
     line(0, y, width, y);
   }
 }
 
+// Clase Particle completa con tus formas
 class Particle {
   constructor(x, y, type, baseSize) {
     this.x = x + random(-5, 5);
     this.y = y + random(-5, 5);
-    this.vx = random(-1, 1);
-    this.vy = random(-1, 1);
+    this.vx = random(-2, 2);
+    this.vy = random(-2, 2);
     this.size = baseSize;
     this.type = type;
     this.life = 255;
 
     if (type === "heart") {
-      this.r = random(250, 255);
-      this.g = random(100, 180);
+      this.r = random(240, 255);
+      this.g = random(100, 150);
       this.b = random(180, 220);
     } else {
       this.r = random(150, 200);
-      this.g = random(240, 255);
+      this.g = random(230, 255);
       this.b = random(150, 200);
     }
   }
@@ -99,21 +108,18 @@ class Particle {
   display() {
     noStroke();
     fill(this.r, this.g, this.b, this.life);
-
+    push();
+    translate(this.x, this.y);
+    
     if (this.type === "heart") {
-      push();
-      translate(this.x, this.y);
-      beginShape();
       let s = this.size * 0.08;
+      beginShape();
       vertex(0, -6 * s);
       bezierVertex(6 * s, -12 * s, 16 * s, -6 * s, 0, 6 * s);
       bezierVertex(-16 * s, -6 * s, -6 * s, -12 * s, 0, -6 * s);
       endShape(CLOSE);
-      pop();
     } else {
-      push();
-      translate(this.x, this.y);
-      let s = this.size * 0.4;
+      let s = this.size * 0.45;
       beginShape();
       for (let i = 0; i < 10; i++) {
         let angle = i * PI / 5;
@@ -121,8 +127,8 @@ class Particle {
         vertex(cos(angle) * radius, sin(angle) * radius);
       }
       endShape(CLOSE);
-      pop();
     }
+    pop();
   }
 
   isDead() {
@@ -134,7 +140,7 @@ function gotHands(results) {
   hands = results;
 }
 
-// Función para ajustar el tamaño si cambias la ventana
+// Ajusta el tamaño si cambias el tamaño de la ventana del navegador
 function windowResized() {
   resizeCanvas(windowWidth, windowHeight);
 }
