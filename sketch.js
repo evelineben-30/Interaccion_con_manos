@@ -8,7 +8,8 @@ function preload() {
 }
 
 function setup() {
-  createCanvas(800, 600); 
+  // 1. Aumentamos el canvas para que haya espacio para el marco
+  createCanvas(windowWidth, windowHeight); 
   video = createCapture(VIDEO);
   video.size(640, 480);
   video.hide();
@@ -18,12 +19,19 @@ function setup() {
 function draw() {
   drawBackground(); 
 
-  // Centrar la cámara
+  // 2. Calcular coordenadas para centrar el video
   let camX = (width - video.width) / 2;
   let camY = (height - video.height) / 2;
+
+  // 3. Dibujar un "Marco" decorativo (Sombra y borde blanco)
+  fill(255);
+  noStroke();
+  rect(camX - 15, camY - 15, video.width + 30, video.height + 30, 20); // Marco blanco redondeado
+  
+  // Dibujar la cámara
   image(video, camX, camY);
 
-  // Partículas
+  // --- Lógica de Partículas ---
   for (let i = particles.length - 1; i >= 0; i--) {
     particles[i].update();
     particles[i].display();
@@ -36,11 +44,11 @@ function draw() {
     let tip = hand.index_finger_tip;
     if (!tip) continue;
 
-  
+    // IMPORTANTE: Mapear las coordenadas del video al canvas centrado
     let cx = camX + tip.x;
     let cy = camY + tip.y;
 
-    let count = 12;
+    let count = 2; // Bajé un poco el count para no saturar el rendimiento
     let sizeMapped = 25;
     let shapeType = (hand.handedness === "Right") ? "heart" : "star";
 
@@ -50,11 +58,12 @@ function draw() {
   }
 }
 
-// Fondo decorativo
+// Fondo con degradado suave (Estilo estético)
 function drawBackground() {
   for (let y = 0; y < height; y++) {
     let inter = map(y, 0, height, 0, 1);
-    let c = lerpColor(color(255, 220, 240), color(180, 200, 255), inter);
+    // Colores pastel: Rosa suave a Azul cielo
+    let c = lerpColor(color(255, 209, 220), color(200, 220, 255), inter);
     stroke(c);
     line(0, y, width, y);
   }
@@ -62,31 +71,29 @@ function drawBackground() {
 
 class Particle {
   constructor(x, y, type, baseSize) {
-    this.x = x + random(-10, 10);
-    this.y = y + random(-10, 10);
-    this.vx = random(-1.5, 1.5);
-    this.vy = random(-1.5, 1.5);
-
+    this.x = x + random(-5, 5);
+    this.y = y + random(-5, 5);
+    this.vx = random(-1, 1);
+    this.vy = random(-1, 1);
     this.size = baseSize;
     this.type = type;
     this.life = 255;
 
-    // Colores según la figura
     if (type === "heart") {
-      this.r = random(240, 255);
-      this.g = random(100, 150);
+      this.r = random(250, 255);
+      this.g = random(100, 180);
       this.b = random(180, 220);
     } else {
-      this.r = random(120, 180);
-      this.g = random(230, 255);
-      this.b = random(120, 160);
+      this.r = random(150, 200);
+      this.g = random(240, 255);
+      this.b = random(150, 200);
     }
   }
 
   update() {
     this.x += this.vx;
     this.y += this.vy;
-    this.life -= 4;
+    this.life -= 5;
   }
 
   display() {
@@ -94,7 +101,6 @@ class Particle {
     fill(this.r, this.g, this.b, this.life);
 
     if (this.type === "heart") {
-      // Corazón rosado
       push();
       translate(this.x, this.y);
       beginShape();
@@ -104,13 +110,10 @@ class Particle {
       bezierVertex(-16 * s, -6 * s, -6 * s, -12 * s, 0, -6 * s);
       endShape(CLOSE);
       pop();
-    }
-
-    if (this.type === "star") {
-      // Estrella verde
+    } else {
       push();
       translate(this.x, this.y);
-      let s = this.size * 0.45;
+      let s = this.size * 0.4;
       beginShape();
       for (let i = 0; i < 10; i++) {
         let angle = i * PI / 5;
@@ -129,4 +132,9 @@ class Particle {
 
 function gotHands(results) {
   hands = results;
+}
+
+// Función para ajustar el tamaño si cambias la ventana
+function windowResized() {
+  resizeCanvas(windowWidth, windowHeight);
 }
