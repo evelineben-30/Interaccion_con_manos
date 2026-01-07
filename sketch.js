@@ -1,7 +1,6 @@
 let handPose;
 let video;
 let hands = [];
-
 let particles = [];
 
 function preload() {
@@ -9,19 +8,23 @@ function preload() {
 }
 
 function setup() {
-  createCanvas(640, 480);
-
+  createCanvas(800, 600); // lienzo más grande para ver el marco
   video = createCapture(VIDEO);
   video.size(640, 480);
   video.hide();
-
   handPose.detectStart(video, gotHands);
 }
 
 function draw() {
-  image(video, 0, 0, width, height);
+  // Fondo decorativo
+  drawBackground();
 
-  // Actualizar y dibujar partículas
+  // Centrar la cámara
+  let camX = (width - video.width) / 2;
+  let camY = (height - video.height) / 2;
+  image(video, camX, camY);
+
+  // Partículas
   for (let i = particles.length - 1; i >= 0; i--) {
     particles[i].update();
     particles[i].display();
@@ -30,24 +33,29 @@ function draw() {
     }
   }
 
-  // Generar partículas
   for (let hand of hands) {
     let tip = hand.index_finger_tip;
-    if (!tip) continue; 
+    if (!tip) continue;
 
-    let cx = tip.x;
-    let cy = tip.y;
+    let cx = camX + tip.x; // ajustar a posición centrada
+    let cy = camY + tip.y;
 
-    // Cantidad 
     let count = 12;
-    let sizeMapped = 25; // tamaño fijo
-
-    // Derecha - corazones | Izquierda - estrellas
+    let sizeMapped = 25;
     let shapeType = (hand.handedness === "Right") ? "heart" : "star";
 
     for (let i = 0; i < count; i++) {
       particles.push(new Particle(cx, cy, shapeType, sizeMapped));
     }
+  }
+}
+
+function drawBackground() {
+  for (let y = 0; y < height; y++) {
+    let inter = map(y, 0, height, 0, 1);
+    let c = lerpColor(color(255, 220, 240), color(180, 200, 255), inter);
+    stroke(c);
+    line(0, y, width, y);
   }
 }
 
