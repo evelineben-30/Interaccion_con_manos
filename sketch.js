@@ -8,7 +8,7 @@ function preload() {
 }
 
 function setup() {
-  createCanvas(800, 600); // lienzo más grande para ver el marco
+  createCanvas(800, 600); 
   video = createCapture(VIDEO);
   video.size(640, 480);
   video.hide();
@@ -16,8 +16,7 @@ function setup() {
 }
 
 function draw() {
-  // Fondo decorativo
-  drawBackground();
+  drawBackground(); 
 
   // Centrar la cámara
   let camX = (width - video.width) / 2;
@@ -37,7 +36,8 @@ function draw() {
     let tip = hand.index_finger_tip;
     if (!tip) continue;
 
-    let cx = camX + tip.x; // ajustar a posición centrada
+  
+    let cx = camX + tip.x;
     let cy = camY + tip.y;
 
     let count = 12;
@@ -50,6 +50,7 @@ function draw() {
   }
 }
 
+// Fondo decorativo
 function drawBackground() {
   for (let y = 0; y < height; y++) {
     let inter = map(y, 0, height, 0, 1);
@@ -58,7 +59,6 @@ function drawBackground() {
     line(0, y, width, y);
   }
 }
-
 
 class Particle {
   constructor(x, y, type, baseSize) {
@@ -94,20 +94,20 @@ class Particle {
     fill(this.r, this.g, this.b, this.life);
 
     if (this.type === "heart") {
-      //Corazón rosado
+      // Corazón rosado
       push();
       translate(this.x, this.y);
       beginShape();
       let s = this.size * 0.08;
-      vertex(0, -6*s);
-      bezierVertex(6*s, -12*s, 16*s, -6*s, 0, 6*s);
-      bezierVertex(-16*s, -6*s, -6*s, -12*s, 0, -6*s);
+      vertex(0, -6 * s);
+      bezierVertex(6 * s, -12 * s, 16 * s, -6 * s, 0, 6 * s);
+      bezierVertex(-16 * s, -6 * s, -6 * s, -12 * s, 0, -6 * s);
       endShape(CLOSE);
       pop();
     }
 
     if (this.type === "star") {
-      //Estrella verde
+      // Estrella verde
       push();
       translate(this.x, this.y);
       let s = this.size * 0.45;
